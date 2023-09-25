@@ -15,13 +15,20 @@
     <main>
         <div id="ticket-list-container"></div>
     </main>
-
-    <!-- Модальное окно для создания тикета -->
     <div class="modal" id="create-ticket-modal">
-        <!-- ... (форма для создания тикета) -->
+        <div class="modal-content">
+            <h2>Create Ticket</h2>
+            <form id="create-form">
+                <label for="name">Name:</label>
+                <input type="text" name="name" required>
+                <label for="description">Description:</label>
+                <textarea name="description" required></textarea>
+                <label for="status">Status:</label>
+                <input type="checkbox" name="status">
+                <button type="submit">Create Ticket</button>
+            </form>
+        </div>
     </div>
-
-    <!-- Модальное окно для редактирования тикета -->
     <div class="modal" id="edit-ticket-modal">
         <div class="modal-content">
             <h2>Edit Ticket</h2>
@@ -40,11 +47,23 @@
 
     <div class="modal" id="ticket-details-modal">
         <div class="modal-content">
-            <!-- Здесь будет отображаться подробная информация о тикете -->
+            <h2>Ticket Details</h2>
+            <p>Name: <span id="ticket-name"></span></p>
+            <p>Description: <span id="ticket-description"></span></p>
+            <p>Status: <span id="ticket-status"></span></p>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <div class="ticket-item" data-ticket-id="${ticket.id}">
+        <h3>${ticket.name}</h3>
+        <p>Status: <input type="checkbox" class="status-checkbox" data-ticket-id="${ticket.id}" ${ticket.status ? 'checked' : ''}></p>
+        <p>Description: ${ticket.description}</p>
+        <button class="delete-button" data-ticket-id="${ticket.id}">Delete</button>
+        <button class="edit-button" data-ticket-id="${ticket.id}">Edit</button>
+    </div>
+    
+
+    <script src="api.js"></script>
     <script src="ticketList.js"></script>
     <script src="path_to_micro_modal.js"></script> <!-- Замените на правильный путь к скрипту MicroModal -->
     <script>

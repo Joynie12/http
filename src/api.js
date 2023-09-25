@@ -83,6 +83,43 @@ window.addEventListener('DOMContentLoaded', () => {
     renderTicketList();
 });
 
+// Обработчик клика на кнопку "Add Ticket"
+document.getElementById('add-ticket-button').addEventListener('click', () => {
+    MicroModal.show('create-ticket-modal');
+});
+
+// Обработчик закрытия модального окна для создания тикета
+document.querySelector('.modal__close').addEventListener('click', () => {
+    MicroModal.close('create-ticket-modal');
+});
+
+function showTicketDetails(ticketId) {
+    // Получаем модальное окно для подробной информации о тикете
+    const ticketDetailsModal = document.getElementById('ticket-details-modal');
+
+    // Получаем элементы, в которые будем вставлять данные
+    const ticketNameElement = ticketDetailsModal.querySelector('#ticket-name');
+    const ticketDescriptionElement = ticketDetailsModal.querySelector('#ticket-description');
+    const ticketStatusElement = ticketDetailsModal.querySelector('#ticket-status');
+
+    // Выполняем запрос на сервер для получения подробных данных о тикете
+    fetch(`?method=ticketById&id=${ticketId}`)
+        .then(response => response.json())
+        .then(ticketDetails => {
+            // Заполняем элементы данными о тикете
+            ticketNameElement.textContent = ticketDetails.name;
+            ticketDescriptionElement.textContent = ticketDetails.description;
+            ticketStatusElement.textContent = ticketDetails.status ? 'Done' : 'Not Done';
+
+            // Открываем модальное окно
+            MicroModal.show('ticket-details-modal');
+        })
+        .catch(error => {
+            console.error('Error fetching ticket details:', error);
+            // Здесь можно добавить обработку ошибки, если не удалось получить данные о тикете
+        });
+}
+
 const ticketListContainer = document.getElementById('ticket-list-container');
 
 async function renderTicketList() {
@@ -121,6 +158,67 @@ async function renderTicketList() {
             openEditModal(ticketId);
         });
     });
+}
+
+// Обработчик клика на кнопку "Edit"
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('edit-button')) {
+        const ticketId = event.target.getAttribute('data-ticket-id');
+        openEditModal(ticketId);
+    }
+});
+
+// Обработчик закрытия модального окна для редактирования тикета
+document.querySelector('.modal__close').addEventListener('click', () => {
+    MicroModal.close('edit-ticket-modal');
+});
+
+// Обработчик события для изменения состояния чекбокса "Сделано"
+document.addEventListener('change', (event) => {
+    if (event.target.classList.contains('status-checkbox')) {
+        const ticketId = event.target.getAttribute('data-ticket-id');
+        const newStatus = event.target.checked;
+
+        // Вызываем функцию для обновления состояния тикета на сервере
+        updateTicketStatus(ticketId, newStatus);
+    }
+});
+
+
+// Функция для обновления состояния тикета на сервере
+function updateTicketStatus(ticketId, isChecked) {
+    const updatedData = { status: isChecked };
+
+    // Отправляем запрос на обновление состояния тикета на сервере
+    updateTicket(ticketId, updatedData)
+        .then((response) => {
+            if (response) {
+                // Обновляем список тикетов после успешного обновления
+                renderTicketList();
+            }
+        });
+}
+
+function openEditModal(ticketId) {
+    const editTicketModal = document.getElementById('edit-ticket-modal');
+    const editForm = editTicketModal.querySelector('#edit-form');
+
+    // Загрузка данных о тикете с сервера
+    fetch(`?method=ticketById&id=${ticketId}`)
+        .then(response => response.json())
+        .then(ticketData => {
+            // Заполнение формы данными о тикете
+            editForm.querySelector('[name="ticket-id"]').value = ticketId;
+            editForm.querySelector('[name="name"]').value = ticketData.name;
+            editForm.querySelector('[name="description"]').value = ticketData.description;
+            editForm.querySelector('[name="status"]').checked = ticketData.status;
+
+            // Открываем модальное окно для редактирования
+            MicroModal.show('edit-ticket-modal');
+        })
+        .catch(error => {
+            console.error('Error fetching ticket details:', error);
+        });
 }
 
 // Функция для открытия модального окна редактирования

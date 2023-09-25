@@ -55,6 +55,40 @@ async function renderTicketList() {
             renderTicketList(); // Обновляем список после обновления состояния
         }
     }
+
+    async function openEditModal(ticketId) {
+        // Получите текущие данные тикета с помощью функции для получения подробной информации о тикете (не забудьте реализовать эту функцию)
+        const ticketData = await getTicketDetails(ticketId);
+    
+        // Заполните форму данными тикета
+        const editForm = document.getElementById('edit-ticket-form');
+        editForm.elements.name.value = ticketData.name;
+        editForm.elements.description.value = ticketData.description;
+    
+        // Добавьте обработчик события отправки формы
+        editForm.addEventListener('submit', async event => {
+            event.preventDefault();
+    
+            const updatedData = {
+                name: editForm.elements.name.value,
+                description: editForm.elements.description.value,
+                // Дополните другими полями, если необходимо
+            };
+    
+            const updatedTicket = await updateTicket(ticketId, updatedData);
+    
+            if (updatedTicket) {
+                // Обновите список тикетов после успешного обновления
+                renderTicketList();
+    
+                // Закройте модальное окно редактирования (пример: MicroModal.close('edit-ticket-modal'))
+                MicroModal.close('edit-ticket-modal');
+            }
+        });
+    
+        // Откройте модальное окно редактирования (пример: MicroModal.show('edit-ticket-modal'))
+        MicroModal.show('edit-ticket-modal');
+    }
     
     // Добавление обработчика события для изменения состояния тикета
     ticketListContainer.addEventListener('change', event => {
