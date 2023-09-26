@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js', // Ваш основной JavaScript файл
@@ -15,7 +16,28 @@ module.exports = {
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/, // Обработка изображений
         type: 'asset/resource'
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader'
+        }
       }
     ]
-  }
+  },
+  devServer: {
+    static: path.resolve(__dirname, 'dist'), 
+    port: 8080 
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'src', 'index.html'), // Путь к вашему index.html в папке src
+          to: path.resolve(__dirname, 'dist') // Куда копировать файл в папку dist
+        }
+      ]
+    })
+  ]
 };
