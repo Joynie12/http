@@ -1,6 +1,4 @@
-import { renderTicketList } from './ticketList';
 import MicroModal from 'micromodal';
-import { createTicket, updateTicket, deleteTicket, getAllTickets } from './api';
 import './styles.css';
 
 // Функция для выполнения запроса на получение списка тикетов
@@ -15,58 +13,55 @@ async function getAllTickets() {
     }
 }
 
-// Функция для создания нового тикета
-async function createTicket(ticketData) {
-    try {
-        const response = await fetch('?method=createTicket', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(ticketData)
+function createTicketOnServer(ticketData) {
+    // Отправка данных о новом тикете на сервер
+    return fetch('?method=createTicket', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ticketData),
+    })
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error creating ticket:', error);
+            return null;
         });
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error creating ticket:', error);
-        return null;
-    }
 }
 
-// Функция для обновления тикета
-async function updateTicket(ticketId, updatedData) {
-    try {
-        const response = await fetch(`?method=updateById&id=${ticketId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(updatedData)
+function updateTicketOnServer(ticketId, updatedData) {
+    // Отправка обновленных данных на сервер
+    return fetch(`?method=updateById&id=${ticketId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error updating ticket:', error);
+            return null;
         });
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error updating ticket:', error);
-        return null;
-    }
 }
 
-// Функция для удаления тикета
-async function deleteTicket(ticketId) {
-    try {
-        const response = await fetch(`?method=deleteById&id=${ticketId}`, {
-            method: 'GET'
-        });
-        if (response.status === 204) {
-            return true;
-        } else {
-            console.error('Error deleting ticket');
+function deleteTicketOnServer(ticketId) {
+    // Удаление тикета на сервере
+    return fetch(`?method=deleteById&id=${ticketId}`, {
+        method: 'GET',
+    })
+        .then(response => {
+            if (response.status === 204) {
+                return true;
+            } else {
+                console.error('Error deleting ticket');
+                return false;
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting ticket:', error);
             return false;
-        }
-    } catch (error) {
-        console.error('Error deleting ticket:', error);
-        return false;
-    }
+        });
 }
 
 MicroModal.init();
@@ -199,42 +194,41 @@ function updateTicketStatus(ticketId, isChecked) {
         });
 }
 
-function openEditModal(ticketId) {
+// Функция для открытия модального окна редактирования
+function openEditModal(ticketId, useServerData = false) {
     const editTicketModal = document.getElementById('edit-ticket-modal');
     const editForm = editTicketModal.querySelector('#edit-form');
 
-    // Загрузка данных о тикете с сервера
-    fetch(`?method=ticketById&id=${ticketId}`)
-        .then(response => response.json())
-        .then(ticketData => {
-            // Заполнение формы данными о тикете
-            editForm.querySelector('[name="ticket-id"]').value = ticketId;
-            editForm.querySelector('[name="name"]').value = ticketData.name;
-            editForm.querySelector('[name="description"]').value = ticketData.description;
-            editForm.querySelector('[name="status"]').checked = ticketData.status;
+    if (useServerData) {
+        // Загрузка данных о тикете с сервера
+        fetch(`?method=ticketById&id=${ticketId}`)
+            .then(response => response.json())
+            .then(ticketData => {
+                // Заполнение формы данными о тикете
+                editForm.querySelector('[name="ticket-id"]').value = ticketId;
+                editForm.querySelector('[name="name"]').value = ticketData.name;
+                editForm.querySelector('[name="description"]').value = ticketData.description;
+                editForm.querySelector('[name="status"]').checked = ticketData.status;
 
-            // Открываем модальное окно для редактирования
-            MicroModal.show('edit-ticket-modal');
-        })
-        .catch(error => {
-            console.error('Error fetching ticket details:', error);
-        });
+                // Открываем модальное окно для редактирования
+                MicroModal.show('edit-ticket-modal');
+            })
+            .catch(error => {
+                console.error('Error fetching ticket details:', error);
+            });
+    } else {
+        // Получаем данные о выбранном тикете по его ID (здесь вам нужно получить данные с сервера)
+        const selectedTicket = tickets.find(ticket => ticket.id === ticketId);
+
+        // Заполняем форму в модальном окне значениями выбранного тикета
+        editForm.querySelector('[name="ticket-id"]').value = selectedTicket.id;
+        editForm.querySelector('[name="name"]').value = selectedTicket.name;
+        editForm.querySelector('[name="description"]').value = selectedTicket.description;
+        editForm.querySelector('[name="status"]').checked = selectedTicket.status;
+
+        // Отображаем модальное окно для редактирования с помощью MicroModal
+        MicroModal.show('edit-ticket-modal');
+    }
 }
 
-// Функция для открытия модального окна редактирования
-function openEditModal(ticketId) {
-    // Получаем данные о выбранном тикете по его ID (здесь вам нужно получить данные с сервера)
-    const selectedTicket = tickets.find(ticket => ticket.id === ticketId);
-
-    // Заполняем форму в модальном окне значениями выбранного тикета
-    const editForm = document.getElementById('edit-form'); // ID вашей формы редактирования
-    editForm.querySelector('[name="ticket-id"]').value = selectedTicket.id;
-    editForm.querySelector('[name="name"]').value = selectedTicket.name;
-    editForm.querySelector('[name="description"]').value = selectedTicket.description;
-    editForm.querySelector('[name="status"]').checked = selectedTicket.status;
-
-    // Отображаем модальное окно для редактирования с помощью MicroModal
-    MicroModal.show('edit-ticket-modal');
-}
-
-export { getAllTickets, createTicket, updateTicket, deleteTicket, renderTicketList, openEditModal };
+export { getAllTickets, createTicketOnServer, updateTicketOnServer, deleteTicketOnServer, renderTicketList, openEditModal };
